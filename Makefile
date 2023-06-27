@@ -1,6 +1,6 @@
 run:
 	docker compose up -d
-	sleep 2 #better to check docker status
+	sleep 5 #better to check docker status
 	go run .
 
 stop:

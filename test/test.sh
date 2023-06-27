@@ -9,9 +9,10 @@ A=$(curl \
 
 # Shortened
 SA=${A: -6}
+echo "Result: " $A
 
 # Get the shortened
-echo "Requesting the returned result"
+echo "Requesting $A"
 GA=$(curl \
     -s \
     "http://localhost:3000/lnk/${SA}" \

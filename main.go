@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -69,7 +70,7 @@ func (hc *HashCutLinkShortener) lookup(slink string) string {
 // Storage interface
 type LinkShortenerStorage interface {
 	get(slink string) string
-	add(link, slink string)
+	add(slink, link string)
 }
 
 // Simple Storage Provider that uses variables (RAM)
@@ -98,12 +99,11 @@ type MysqlStorageProvider struct {
 
 type GormShortenedLink struct {
 	gorm.Model
-	slink string
-	link string
+	Slink	string	`gorm:"primaryKey"`
+	Link	string
 }
 
 func NewMysqlStorageProvider(dsn string) *MysqlStorageProvider {
-	println("here", dsn)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -117,19 +117,20 @@ func NewMysqlStorageProvider(dsn string) *MysqlStorageProvider {
 
 func (msp *MysqlStorageProvider) add(slink, link string) {
 	msp.db.Create(&GormShortenedLink{
-		slink: slink,
-		link: link,
+		Slink: slink,
+		Link: link,
 	})
 }
 
 func (msp *MysqlStorageProvider) get(slink string) string {
 	var shortenedLink GormShortenedLink
 	err := msp.db.First(&shortenedLink, "slink = ?", slink).Error
-	println("err", err)
+
 	if err == gorm.ErrRecordNotFound {
+		println("error")
 		return ""
 	} else {
-		return shortenedLink.link
+		return shortenedLink.Link
 	}
 }
 
@@ -137,18 +138,17 @@ func main () {
 	r := mux.NewRouter()
 	godotenv.Load()
 	
-	storage := &SimpleStorageProvider{
-		db: make(map[string]string),
-	}
+	// storage := &SimpleStorageProvider{
+	// 	db: make(map[string]string),
+	// }
 
-	// storage := NewMysqlStorageProvider(os.Getenv("DSN"))
+	storage := NewMysqlStorageProvider(os.Getenv("DSN"))
 
 	ls := &HashCutLinkShortener{
 		salt: "!",
 		Length: 6,
 		storage: storage,
 	}
-
 
 	r.HandleFunc("/lnk/{slink}", func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
