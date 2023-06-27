@@ -1,5 +1,6 @@
 version: '3'
 services:
+
   mysql:
     image: mysql:latest
     restart: always
@@ -12,3 +13,13 @@ services:
       - ./data:/var/lib/mysql
     ports:
       - "3306:3306"
+
+  # phpmyadmin:
+  #     image: phpmyadmin/phpmyadmin
+  #     restart: always
+  #     environment:
+  #       PMA_HOST: mysql
+  #       PMA_PORT: 3306
+  #       PMA_ARBITRARY: 1
+  #     ports:
+  #       - "8080:8080"
